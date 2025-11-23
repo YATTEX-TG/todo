@@ -11,7 +11,36 @@ import {
 
 const router = Router();
 
-// Получить все задачи (с фильтрацией по категории)
+/**
+ * @swagger
+ * /api/todos:
+ *   get:
+ *     summary: Получить список всех задач
+ *     description: Возвращает список задач с возможностью фильтрации по категории
+ *     tags: [Todos]
+ *     parameters:
+ *       - in: query
+ *         name: categoryId
+ *         schema:
+ *           type: integer
+ *         description: ID категории для фильтрации задач
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Успешный возврат списка задач
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Todo'
+ *       400:
+ *         description: Неверный ID категории
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/', (req, res) => {
   const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
 
@@ -22,7 +51,44 @@ router.get('/', (req, res) => {
   res.json(listTodos(categoryId));
 });
 
-// Создать задачу
+/**
+ * @swagger
+ * /api/todos:
+ *   post:
+ *     summary: Создать новую задачу
+ *     description: Создает новую задачу с указанным заголовком и категорией
+ *     tags: [Todos]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: Заголовок задачи
+ *                 example: "Изучить TypeScript"
+ *               categoryId:
+ *                 type: integer
+ *                 description: ID категории (опционально)
+ *                 example: 1
+ *     responses:
+ *       201:
+ *         description: Задача успешно создана
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
+ *       400:
+ *         description: Неверные данные запроса
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/', (req, res) => {
   const { title, categoryId } = req.body ?? {};
 
@@ -40,7 +106,54 @@ router.post('/', (req, res) => {
   res.status(201).json(todo);
 });
 
-// Обновить заголовок задачи
+/**
+ * @swagger
+ * /api/todos/{id}/title:
+ *   put:
+ *     summary: Обновить заголовок задачи
+ *     description: Обновляет заголовок существующей задачи
+ *     tags: [Todos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID задачи
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: Новый заголовок задачи
+ *                 example: "Обновленный заголовок задачи"
+ *     responses:
+ *       200:
+ *         description: Заголовок задачи успешно обновлен
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
+ *       400:
+ *         description: Неверные данные запроса
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Задача не найдена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.put('/:id/title', (req, res) => {
   const id = Number(req.params.id);
   const { title } = req.body ?? {};
@@ -61,7 +174,52 @@ router.put('/:id/title', (req, res) => {
   res.json(todo);
 });
 
-// Обновить категорию задачи
+/**
+ * @swagger
+ * /api/todos/{id}/category:
+ *   put:
+ *     summary: Обновить категорию задачи
+ *     description: Изменяет категорию существующей задачи
+ *     tags: [Todos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID задачи
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               categoryId:
+ *                 type: integer
+ *                 description: ID новой категории (null для удаления категории)
+ *                 example: 2
+ *     responses:
+ *       200:
+ *         description: Категория задачи успешно обновлена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
+ *       400:
+ *         description: Неверные данные запроса
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Задача не найдена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.put('/:id/category', (req, res) => {
   const id = Number(req.params.id);
   const { categoryId } = req.body ?? {};
@@ -84,7 +242,41 @@ router.put('/:id/category', (req, res) => {
   res.json(todo);
 });
 
-// Существующие endpoints оставляем без изменений
+/**
+ * @swagger
+ * /api/todos/{id}/toggle:
+ *   post:
+ *     summary: Переключить статус выполнения задачи
+ *     description: Изменяет статус выполнения задачи (выполнена/не выполнена)
+ *     tags: [Todos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID задачи
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Статус задачи успешно изменен
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
+ *       400:
+ *         description: Неверный ID задачи
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Задача не найдена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/:id/toggle', (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid ID' });
@@ -95,6 +287,37 @@ router.post('/:id/toggle', (req, res) => {
   res.json(todo);
 });
 
+/**
+ * @swagger
+ * /api/todos/{id}:
+ *   delete:
+ *     summary: Удалить задачу
+ *     description: Удаляет задачу по ID
+ *     tags: [Todos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID задачи для удаления
+ *         example: 1
+ *     responses:
+ *       204:
+ *         description: Задача успешно удалена
+ *       400:
+ *         description: Неверный ID задачи
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Задача не найдена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.delete('/:id', (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid ID' });
